@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 
 # Modelni yuklash
-with open('your_model.pkl', 'rb') as file:
+with open('random_forest_model.pkl', 'rb') as file:
     model = pickle.load(file)
 
 # Streamlit ilovasi
