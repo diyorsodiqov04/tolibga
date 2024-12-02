@@ -13,10 +13,10 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Foydalanuvchi uchun ma'lumotlarni kiritish
+
 st.header("Tranzaksiya Tafsilotlarini Kiriting")
 
-# Kiritish maydonlari
+
 step = st.number_input("Step (Tranzaksiya vaqti)", min_value=0, max_value=744, step=1)
 transaction_type = st.selectbox("Tranzaksiya turi", ['CASH_IN', 'CASH_OUT', 'DEBIT', 'PAYMENT', 'TRANSFER'])
 amount = st.number_input("Summasi", min_value=0.0, step=0.01)
@@ -26,7 +26,7 @@ nameDest = st.text_input("Qabul qiluvchi nomi (masalan, C12345)")
 oldbalanceDest = st.number_input("Qabul qiluvchi hisobining eski balansi", min_value=0.0, step=0.01)
 isFlaggedFraud = st.selectbox("Firibgarlik sifatida belgilanganmi?", [0, 1])
 
-# CSS orqali butonni chiroyli qilish
+
 st.markdown("""
 <style>
     .stButton>button {
@@ -49,9 +49,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Ma'lumotlarni DataFrame formatiga o‘tkazish
 if st.button("Bashorat qilish"):
-    # Foydalanuvchi ma'lumotlarini DataFrame formatida tayyorlash
+   
     input_data = pd.DataFrame({
         'step': [step],
         'type': [transaction_type],
@@ -63,10 +62,9 @@ if st.button("Bashorat qilish"):
         'isFlaggedFraud': [isFlaggedFraud]
     })
     
-    # Model yordamida bashorat qilish
+  
     prediction = model.predict(input_data)
 
-    # Natijani ko‘rsatish
     if prediction[0] == 1:
         st.markdown("""
         <div style="background-color: #f8d7da; padding: 20px; text-align: center; border-radius: 10px;">
