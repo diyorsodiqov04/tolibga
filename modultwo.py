@@ -1,14 +1,9 @@
 import streamlit as st
 import pandas as pd
 import pickle
-from sklearn.preprocessing import LabelEncoder
 
 # Modelni yuklash
 model = pickle.load(open("my_model.pkl", "rb"))
-
-# LabelEncoder ni yuklash
-with open("encoder.pkl", "rb") as f:
-    encoder = pickle.load(f)
 
 # Sahifaga HTML va CSS qo'shish
 st.markdown("""
@@ -82,7 +77,6 @@ transaction_type = st.selectbox("Tranzaksiya turi", ['CASH_IN', 'CASH_OUT', 'DEB
 amount = st.number_input("Summasi", min_value=0.0, step=0.01)
 oldbalanceOrg = st.number_input("Jo‘natuvchi hisobining eski balansi", min_value=0.0, step=0.01)
 newbalanceOrig = st.number_input("Jo‘natuvchi hisobining yangi balansi", min_value=0.0, step=0.01)
-nameDest = st.text_input("Qabul qiluvchi nomi (masalan, C12345)")
 oldbalanceDest = st.number_input("Qabul qiluvchi hisobining eski balansi", min_value=0.0, step=0.01)
 isFlaggedFraud = st.selectbox("Firibgarlik sifatida belgilanganmi?", [0, 1])
 
@@ -101,12 +95,6 @@ if st.button("Bashorat qilish"):
     if transaction_type not in transaction_type_map:
         st.markdown('<div class="error-section">Tranzaksiya turi noto‘g‘ri!</div>', unsafe_allow_html=True)
     else:
-        # nameDest ni kodlash
-        if nameDest in encoder.classes_:
-            nameDest_encoded = encoder.transform([nameDest])[0]
-        else:
-            nameDest_encoded = -1
-
         # Tranzaksiya ma'lumotlari
         input_data = pd.DataFrame({
             'step': [step],
@@ -114,7 +102,6 @@ if st.button("Bashorat qilish"):
             'amount': [amount],
             'oldbalanceOrg': [oldbalanceOrg],
             'newbalanceOrig': [newbalanceOrig],
-            'nameDest': [nameDest_encoded],
             'oldbalanceDest': [oldbalanceDest],
             'isFlaggedFraud': [isFlaggedFraud]
         })
