@@ -4,31 +4,77 @@ import pickle
 from sklearn.preprocessing import LabelEncoder
 
 # Modelni yuklash
-try:
-    model = pickle.load(open("model.pkl", "rb"))
-    st.success("Model muvaffaqiyatli yuklandi!")
-except Exception as e:
-    st.error(f"Modelni yuklashda xatolik: {e}")
+model = pickle.load(open("my_model.pkl", "rb"))
 
-# LabelEncoder ni yaratish
-encoder = LabelEncoder()
-# Ilgari o'rgatilgan encoderni yuklash
-try:
-    with open("encoder.pkl", "rb") as f:
-        encoder = pickle.load(f)
-except Exception as e:
-    st.error(f"LabelEncoderni yuklashda xatolik: {e}")
+# LabelEncoder ni yuklash
+with open("encoder.pkl", "rb") as f:
+    encoder = pickle.load(f)
 
-# Web sahifa uchun sarlavha
+# Sahifaga HTML va CSS qo'shish
 st.markdown("""
-    <div style="background-color: lightblue; padding: 20px; text-align: center;">
-        <h1 style="color: #2F4F4F;">Firibgarlikni Aniqlash Bashorati</h1>
-        <p style="font-size: 18px; color: #5F6368;">Tranzaksiya tafsilotlarini kiriting va firibgarlikni aniqlash uchun bashorat oling.</p>
-    </div>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .main-title {
+            text-align: center;
+            color: #2F4F4F;
+            font-size: 36px;
+            margin-top: 20px;
+        }
+        .sub-title {
+            text-align: center;
+            color: #5F6368;
+            font-size: 18px;
+        }
+        .input-section {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .result-section {
+            background-color: #e7f5e6;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2F4F4F;
+        }
+        .error-section {
+            background-color: #f8d7da;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #842029;
+        }
+        .stButton>button {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border-radius: 10px;
+            padding: 10px 20px;
+            border: none;
+            width: 100%;
+        }
+        .stButton>button:hover {
+            background-color: #45a049;
+        }
+    </style>
 """, unsafe_allow_html=True)
 
-# Foydalanuvchi uchun ma'lumotlarni kiritish
-st.header("Tranzaksiya Tafsilotlarini Kiriting")
+# HTML sarlavhalar
+st.markdown('<div class="main-title">Firibgarlikni Aniqlash Bashorati</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">Tranzaksiya tafsilotlarini kiriting va bashorat oling.</div>', unsafe_allow_html=True)
+
+# Kiritish bo'limi
+st.markdown('<div class="input-section">', unsafe_allow_html=True)
 
 # Kiritish maydonlari
 step = st.number_input("Step (Tranzaksiya vaqti)", min_value=0, max_value=744, step=1)
@@ -40,7 +86,7 @@ nameDest = st.text_input("Qabul qiluvchi nomi (masalan, C12345)")
 oldbalanceDest = st.number_input("Qabul qiluvchi hisobining eski balansi", min_value=0.0, step=0.01)
 isFlaggedFraud = st.selectbox("Firibgarlik sifatida belgilanganmi?", [0, 1])
 
-# Tranzaksiya turini raqamga almashtirish
+# Tranzaksiya turini raqamga o‘tkazish
 transaction_type_map = {
     'CASH_IN': 1,
     'CASH_OUT': 5,
@@ -49,35 +95,35 @@ transaction_type_map = {
     'TRANSFER': 4
 }
 
-# Ma'lumotlarni DataFrame formatiga o‘tkazish
+st.markdown('</div>', unsafe_allow_html=True)  # Input section div tugashi
+
 if st.button("Bashorat qilish"):
-    try:
-        # Tranzaksiya turini raqamga almashtirish
-        if transaction_type not in transaction_type_map:
-            st.error("Tranzaksiya turi noto‘g‘ri!")
+    if transaction_type not in transaction_type_map:
+        st.markdown('<div class="error-section">Tranzaksiya turi noto‘g‘ri!</div>', unsafe_allow_html=True)
+    else:
+        # nameDest ni kodlash
+        if nameDest in encoder.classes_:
+            nameDest_encoded = encoder.transform([nameDest])[0]
         else:
-            # NameDest ni kodlash
-            nameDest_encoded = encoder.transform([nameDest])[0] if nameDest in encoder.classes_ else -1
-            
-            # Tranzaksiya ma'lumotlari
-            input_data = pd.DataFrame({
-                'step': [step],
-                'type': [transaction_type_map[transaction_type]],
-                'amount': [amount],
-                'oldbalanceOrg': [oldbalanceOrg],
-                'newbalanceOrig': [newbalanceOrig],
-                'nameDest': [nameDest_encoded],
-                'oldbalanceDest': [oldbalanceDest],
-                'isFlaggedFraud': [isFlaggedFraud]
-            })
+            nameDest_encoded = -1
 
-            # Model yordamida bashorat qilish
-            prediction = model.predict(input_data)
+        # Tranzaksiya ma'lumotlari
+        input_data = pd.DataFrame({
+            'step': [step],
+            'type': [transaction_type_map[transaction_type]],
+            'amount': [amount],
+            'oldbalanceOrg': [oldbalanceOrg],
+            'newbalanceOrig': [newbalanceOrig],
+            'nameDest': [nameDest_encoded],
+            'oldbalanceDest': [oldbalanceDest],
+            'isFlaggedFraud': [isFlaggedFraud]
+        })
 
-            # Natijani ko‘rsatish
-            if prediction[0] == 1:
-                st.error("Firibgarlik tranzaksiyasi aniqlangan!")
-            else:
-                st.success("Tranzaksiya qonuniy!")
-    except ValueError as e:
-        st.error(f"Kiritilgan ma'lumotda xatolik: {e}")
+        # Model yordamida bashorat qilish
+        prediction = model.predict(input_data)
+
+        # Natijani chiqarish
+        if prediction[0] == 1:
+            st.markdown('<div class="error-section">Firibgarlik tranzaksiyasi aniqlangan!</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="result-section">Tranzaksiya qonuniy!</div>', unsafe_allow_html=True)
