@@ -1,4 +1,7 @@
 streamlit
-transformers
-python-docx
-PyPDF2
+pickle-mixin 
+numpy 
+scikit-learn 
+pandas 
+matplotlib 
+seaborn
