@@ -1,9 +1,23 @@
 import streamlit as st
 import pandas as pd
 import pickle
+from sklearn.preprocessing import LabelEncoder
 
 # Modelni yuklash
-model = pickle.load(open("my_model.pkl", "rb"))
+try:
+    model = pickle.load(open("model.pkl", "rb"))
+    st.success("Model muvaffaqiyatli yuklandi!")
+except Exception as e:
+    st.error(f"Modelni yuklashda xatolik: {e}")
+
+# LabelEncoder ni yaratish
+encoder = LabelEncoder()
+# Ilgari o'rgatilgan encoderni yuklash
+try:
+    with open("encoder.pkl", "rb") as f:
+        encoder = pickle.load(f)
+except Exception as e:
+    st.error(f"LabelEncoderni yuklashda xatolik: {e}")
 
 # Web sahifa uchun sarlavha
 st.markdown("""
@@ -35,43 +49,35 @@ transaction_type_map = {
     'TRANSFER': 4
 }
 
-# CSS orqali butonni chiroyli qilish
-st.markdown("""
-    <style>
-        .stButton>button {
-            background-color: #4CAF50;
-            color: white;
-            font-size: 16px;
-            border-radius: 10px;
-            padding: 10px 20px;
-            border: none;
-            width: 100%;
-        }
-        .stButton>button:hover {
-            background-color: #45a049;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
 # Ma'lumotlarni DataFrame formatiga o‘tkazish
 if st.button("Bashorat qilish"):
-    # Foydalanuvchi ma'lumotlarini DataFrame formatida tayyorlash
-    input_data = pd.DataFrame({
-        'step': [step],
-        'type': [transaction_type_map[transaction_type]],  # Tranzaksiya turini raqamga almashtirish
-        'amount': [amount],
-        'oldbalanceOrg': [oldbalanceOrg],
-        'newbalanceOrig': [newbalanceOrig],
-        'nameDest': [nameDest],
-        'oldbalanceDest': [oldbalanceDest],
-        'isFlaggedFraud': [isFlaggedFraud]
-    })
-    
-    # Model yordamida bashorat qilish
-    prediction = model.predict(input_data)
+    try:
+        # Tranzaksiya turini raqamga almashtirish
+        if transaction_type not in transaction_type_map:
+            st.error("Tranzaksiya turi noto‘g‘ri!")
+        else:
+            # NameDest ni kodlash
+            nameDest_encoded = encoder.transform([nameDest])[0] if nameDest in encoder.classes_ else -1
+            
+            # Tranzaksiya ma'lumotlari
+            input_data = pd.DataFrame({
+                'step': [step],
+                'type': [transaction_type_map[transaction_type]],
+                'amount': [amount],
+                'oldbalanceOrg': [oldbalanceOrg],
+                'newbalanceOrig': [newbalanceOrig],
+                'nameDest': [nameDest_encoded],
+                'oldbalanceDest': [oldbalanceDest],
+                'isFlaggedFraud': [isFlaggedFraud]
+            })
 
-    # Natijani ko‘rsatish
-    if prediction[0] == 1:
-        st.error("Firibgarlik tranzaksiyasi aniqlangan!")
-    else:
-        st.success("Tranzaksiya qonuniy!")
+            # Model yordamida bashorat qilish
+            prediction = model.predict(input_data)
+
+            # Natijani ko‘rsatish
+            if prediction[0] == 1:
+                st.error("Firibgarlik tranzaksiyasi aniqlangan!")
+            else:
+                st.success("Tranzaksiya qonuniy!")
+    except ValueError as e:
+        st.error(f"Kiritilgan ma'lumotda xatolik: {e}")
