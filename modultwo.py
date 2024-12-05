@@ -69,7 +69,7 @@ st.markdown('<div class="main-title">Firibgarlikni Aniqlash Bashorati</div>', un
 st.markdown('<div class="sub-title">Tranzaksiya tafsilotlarini kiriting va bashorat oling.</div>', unsafe_allow_html=True)
 
 # Kiritish bo'limi
-st.markdown('<div class="input-section">', unsafe_allow_html=True)
+
 
 # Kiritish maydonlari
 step = st.number_input("Step (Tranzaksiya vaqti)", min_value=0, max_value=744, step=1)
