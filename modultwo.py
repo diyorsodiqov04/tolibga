@@ -72,7 +72,7 @@ st.markdown('<div class="sub-title">Tranzaksiya tafsilotlarini kiriting va basho
 
 
 # Kiritish maydonlari
-step = st.number_input("Step (Tranzaksiya vaqti)", min_value=0, max_value=744, step=1)
+step = st.number_input("Step (Qadam)", min_value=0, max_value=744, step=1)
 transaction_type = st.selectbox("Tranzaksiya turi", ['CASH_IN', 'CASH_OUT', 'DEBIT', 'PAYMENT', 'TRANSFER'])
 amount = st.number_input("Summasi", min_value=0.0, step=0.01)
 oldbalanceOrg = st.number_input("Jo‘natuvchi hisobining eski balansi", min_value=0.0, step=0.01)
